@@ -276,7 +276,9 @@ PROJECT.md                                  # user-facing changelog (CEO writes 
 ## Branches & PRs
 
 - Phase branch: `agent/phase-<n>-<slug>` (off `main`)
-- Task branch: `agent/phase-<n>-<slug>/<task-id>` (worktree on this)
+- Task branch: `agent/phase-<n>-<slug>--task-<task-id>` (worktree on this)
+
+> Note: the `--task-` suffix (not `/<task-id>`) is required by git — a ref can't be both a tip and a namespace, so `agent/phase-1-foo` and `agent/phase-1-foo/bar` cannot coexist.
 - Auditor merges task branches → phase branch.
 - Runner pushes phase branch + `gh pr create --base main --head <phase-branch> --body-file <audit-report>`.
 - No remote / no `gh` / push refused → `pr_failed` event, run continues, CEO records the reason in PROJECT.md.

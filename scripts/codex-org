@@ -952,7 +952,10 @@ def run_task(run_dir: Path, config: dict[str, Any], mem: Memory, task: dict[str,
     rev = config["roles"]["reviewer"]
     task_id = task["id"]
     wt_path = WORKTREES_DIR / run_dir.name / task_id
-    task_branch = f"{branch}/{task_id}"
+    # IMPORTANT: git refs can't be both a tip and a namespace. If the phase
+    # branch is `agent/phase-1-foo`, we cannot create `agent/phase-1-foo/<task>`
+    # underneath it. Use a flat suffix instead.
+    task_branch = f"{branch}--task-{task_id}"
     save_task_meta(run_dir, task_id, {
         "task": task, "phase": phase, "plan_path": plan_path,
         "branch": branch, "task_branch": task_branch, "worktree": str(wt_path),
