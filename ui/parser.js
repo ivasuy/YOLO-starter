@@ -126,6 +126,75 @@ function parsePipeDelimitedKeyValuePairs(text) {
   return out;
 }
 
+function splitPipes(text, fields) {
+  const s = String(text ?? "");
+  if (!s.includes("|")) return null;
+
+  const parts = s.split("|").map((p) => p.trim());
+  const nonEmptyCount = parts.filter((p) => p.length > 0).length;
+  if (nonEmptyCount === 0) return null;
+
+  if (parts.length <= fields) {
+    while (parts.length < fields) parts.push("");
+    return parts;
+  }
+  const head = parts.slice(0, fields - 1);
+  const tail = parts.slice(fields - 1).join(" | ").trim();
+  return [...head, tail];
+}
+
+function parsePositionalEventLine(line) {
+  // Format: ts | role | event | task_id | details
+  const parts = splitPipes(line, 5);
+  if (!parts) return null;
+
+  const [ts, role, event, taskId, details] = parts;
+  if (!ts || !role || !event) return null;
+
+  // Heuristic: if all fields look like key=value tokens, this isn't positional.
+  if (
+    [ts, role, event, taskId, details]
+      .filter((v) => v && typeof v === "string")
+      .every((v) => v.includes("="))
+  ) {
+    return null;
+  }
+
+  return {
+    ts,
+    role: role.toLowerCase(),
+    kind: event,
+    task_id: taskId || null,
+    msg: details || null,
+  };
+}
+
+function parsePositionalWorktreeLine(line) {
+  // Format: id | branch | status | task_id | path | updated_at
+  const parts = splitPipes(line, 6);
+  if (!parts) return null;
+
+  const [id, branch, status, taskId, path, updatedAt] = parts;
+  if (!id) return null;
+
+  if (
+    [id, branch, status, taskId, path, updatedAt]
+      .filter((v) => v && typeof v === "string")
+      .every((v) => v.includes("="))
+  ) {
+    return null;
+  }
+
+  return {
+    id: id || null,
+    branch: branch || null,
+    status: status || null,
+    task_id: taskId || null,
+    path: path || null,
+    updated_at: updatedAt || null,
+  };
+}
+
 function parseCanonicalRecord(text) {
   const trimmed = String(text ?? "").trim();
   if (!trimmed) return null;
@@ -195,12 +264,11 @@ function normalizePrettyEventLine(line, warnings, lineNo) {
   const clean = stripAnsi(line).trimEnd();
   const pref = parsePrettyTimestampPrefix(clean);
   if (!pref) {
-    // Not a pretty_print line; treat as raw text blob entry.
-    return normalizeTimelineEntry(
-      { ts: null, kind: "text_line", msg: clean, data: { line_no: lineNo } },
-      warnings,
-      `line ${lineNo}`
-    );
+    const positional = parsePositionalEventLine(clean);
+    if (positional) return normalizeTimelineEntry(positional, warnings, `line ${lineNo}`);
+
+    warnings.push(`unrecognized event line ${lineNo}: ${clean.slice(0, 160)}`);
+    return null;
   }
 
   const { ts, rest } = pref;
@@ -302,11 +370,14 @@ function normalizePrettyEventLine(line, warnings, lineNo) {
   }
 
   // Fallback: keep the rest of the line for display/debugging.
-  return normalizeTimelineEntry(
-    { ts, kind: "text_line", msg: r, data: { line_no: lineNo } },
-    warnings,
-    `line ${lineNo}`
-  );
+  const positional = parsePositionalEventLine(r);
+  if (positional) {
+    if (positional.ts === undefined || positional.ts === null) positional.ts = ts;
+    return normalizeTimelineEntry(positional, warnings, `line ${lineNo}`);
+  }
+
+  warnings.push(`unrecognized event line ${lineNo}: ${r.slice(0, 160)}`);
+  return null;
 }
 
 export function parseEvents(text) {
@@ -339,7 +410,8 @@ export function parseEvents(text) {
         continue;
       }
     }
-    timeline.push(normalizePrettyEventLine(line, warnings, i + 1));
+    const evt = normalizePrettyEventLine(line, warnings, i + 1);
+    if (evt) timeline.push(evt);
   }
 
   return { timeline, warnings };
@@ -389,6 +461,9 @@ function parseWorktreeLine(line) {
   const t = line.trim();
   if (!t || t === "(none)") return null;
 
+  const positional = parsePositionalWorktreeLine(t);
+  if (positional) return { ...positional, raw: t };
+
   const canonical = parseCanonicalRecord(t);
   if (canonical) {
     return {
@@ -396,6 +471,8 @@ function parseWorktreeLine(line) {
       status: canonical.status ?? null,
       branch: canonical.branch ?? null,
       path: canonical.path ?? null,
+      task_id: canonical.task_id ?? null,
+      updated_at: canonical.updated_at ?? null,
       raw: t,
     };
   }
@@ -488,6 +565,8 @@ export function parseState(text) {
           status: parsed.status ?? null,
           branch: parsed.branch ?? null,
           path: parsed.path ?? null,
+          task_id: parsed.task_id ?? null,
+          updated_at: parsed.updated_at ?? null,
         });
       } else {
         warnings.push(`unparsed worktree line: ${t.slice(0, 120)}`);
