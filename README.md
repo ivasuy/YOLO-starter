@@ -24,7 +24,9 @@ git remote add origin <your-fork-or-remote>               # optional, for PRs
 scripts/codex-org start "<your prompt>"
 ```
 
-Bootstrap is idempotent — re-run anytime. It only adds missing files. Never overwrites `README.md`, `.codex/config.toml`, or existing prompts/skills. `AGENTS.md` is prepended (starter content goes on top, your existing content kept below).
+Bootstrap is idempotent — re-run anytime. It only adds missing files. Never overwrites `README.md`, `.codex/config.toml`, or existing prompts. `AGENTS.md` is prepended (starter content goes on top, your existing content kept below).
+
+All agent behavior is **inlined directly into `prompts/<role>.md`** — no external skill files. The runtime does not load skills; everything each role needs to do its job is in its prompt.
 
 ### B. Use the template directly
 
@@ -43,7 +45,7 @@ No deps to install either way.
 # foreground — events stream live, CEO question prompts you inline
 scripts/codex-org start "fix the auth bug where tokens never expire"
 
-# product-mode CEO (uses gstack-plan-ceo-review skill)
+# product-mode CEO (more strategic intake — scope expansion, premise challenge)
 scripts/codex-org start "redesign onboarding to 3 steps" --ceo-mode product
 
 # detach immediately, run in background
@@ -92,7 +94,7 @@ Each role has a distinct color: **CEO** magenta · **CTO** cyan · **ARCHITECT**
 
 [19:53:18]   CEO         ▸ start  intake-01
 [19:53:37]     CEO         ·  Considering tool usage for output
-[19:53:43]     CEO         ›  sed -n 1,220p .codex/skills/using-superpowers/SKILL.md
+[19:53:43]     CEO         ›  cat AGENTS.md
 [19:54:01]     CEO         ›  git log --oneline -5
 [19:54:01]     CEO         ✓  rc=128 git log --oneline -5
 [19:54:46]     CEO         ::
@@ -217,7 +219,7 @@ The orgchart's red `FAILED TASKS` block shows, per failure:
 ```
 task=dashboard-api-routes  phase=1  stage=worktree  reason=worktree_create_failed
   worktree: /Users/you/proj/.worktrees/codex-org-a1b2c3d4/dashboard-api-routes
-  branch:   agent/phase-1-local-dashboard-mvp/dashboard-api-routes
+  branch:   agent/phase-1-local-dashboard-mvp--task-dashboard-api-routes
   at:       2026-05-16T19:22:41
   detail:   fatal: invalid reference: agent/phase-1-local-dashboard-mvp
   restart:  scripts/codex-org restart codex-org-a1b2c3d4 --task dashboard-api-routes
@@ -283,9 +285,22 @@ PROJECT.md                                  # user-facing changelog (CEO writes 
 - Runner pushes phase branch + `gh pr create --base main --head <phase-branch> --body-file <audit-report>`.
 - No remote / no `gh` / push refused → `pr_failed` event, run continues, CEO records the reason in PROJECT.md.
 
+## Iteration caps (runtime safeties)
+
+| Loop | Cap | On exhaustion |
+|---|---|---|
+| CEO intake | 8 turns | Returns NEEDS_USER with answers collected so far |
+| Architect ↔ CTO | 5 iterations | Treats last CTO output as GREEN with `capped: true` |
+| Implementer ↔ Reviewer per task | 10 revisions | Records FAIL_MAX_REVISIONS, restartable |
+| Auditor ↔ Implementer per phase | 3 passes | Soft-lands non-critical issues as deferred_concerns, or returns BLOCKED for true blockers |
+
+Prompts include matching discipline — for example, the auditor must soft-land into PROJECT.md's "Deferred Concerns" section rather than block at pass 3 for non-critical issues.
+
 ## Customizing
 
-Roles / models / skills live in `workflow/org.defaults.json`. Prompts in `prompts/<role>.md`. Codex CLI defaults in `.codex/config.toml` (already set to `danger-full-access`).
+Roles and models live in `workflow/org.defaults.json`. Each role's full behavior contract lives in `prompts/<role>.md` — including TDD discipline, systematic debugging, plan completeness gates, confidence calibration, error/rescue maps, and observability requirements. There are no external skill files; everything is inlined.
+
+Codex CLI defaults in `.codex/config.toml` (already set to `danger-full-access`). Per-role TUI configs (for direct codex CLI usage outside the org pipeline) live in `.codex/agents/<role>.toml`.
 
 ## When things break
 
@@ -303,9 +318,25 @@ Every event is in `agent-runs/<run-id>/events.jsonl`. Every role call is logged 
 ```
 AGENTS.md                    # org contract; agents read this at runtime
 PROJECT.md                   # user-facing changelog
-prompts/<role>.md            # role contracts
-workflow/org.defaults.json   # roles, models, skills
+prompts/<role>.md            # full role contract — inlined behavior, no external skills
+workflow/org.defaults.json   # roles + models (skills cleared; all behavior in prompts)
 scripts/codex-org            # the single entry CLI
+scripts/bootstrap-codex-org  # install into another project
+.codex/config.toml           # codex CLI defaults (danger-full-access)
+.codex/agents/<role>.toml    # codex TUI per-role summaries (point to prompts/<role>.md)
 bin/                         # archived (claude wrappers, old runner, docs)
 ```
+
+## What each role does
+
+| Role | Job | Key inlined behavior |
+|---|---|---|
+| **CEO** | Talks to user, writes phased spec, owns PROJECT.md | 10 question categories, 4-shadow-path probe, anti-feature-creep gate, ground-truth rule |
+| **CTO** | Per-phase implementation plan with task graph | Error/rescue map, observability, test_cases, integration_contracts per task; scope challenge; 13-item self-review |
+| **Architect** | Reviews CTO's plan, additive only | 7 mandatory completeness gates + 11-section eng review (architecture/security/data flow/tests/perf/observability/deployment/trajectory/UX) + confidence calibration |
+| **Implementer** | One task in one worktree | TDD red-green-refactor + iron law, systematic debugging 4-phase, root-cause-tracing, testing anti-patterns, "don't invent" rule, commit-before-GREEN |
+| **Reviewer** | Paired 1:1 with implementer | Dual-lens (spec + quality), don't-trust-the-report, reality-over-plan, confidence calibration (1-10) |
+| **Auditor** | Cross-worktree final gate + merge | Per-worktree audit logs, re-audit discipline (no new findings), 3-pass cap with soft-landing into deferred_concerns |
+
+See `prompts/<role>.md` for the full contract per role.
 

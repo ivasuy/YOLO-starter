@@ -15,70 +15,45 @@
   "role_variants": {
     "ceo_codex": {
       "provider": "codex",
-      "model": "gpt-5.5",
+      "model": "gpt-5.3-codex",
       "effort": "xhigh",
       "prompt": "prompts/ceo.md",
-      "required_skills": [
-        "using-superpowers",
-        "brainstorming",
-        "gstack-plan-ceo-review",
-        "writing-plans"
-      ]
+      "required_skills": []
     },
     "cto_codex": {
       "provider": "codex",
-      "model": "gpt-5.5",
+      "model": "gpt-5.3-codex",
       "effort": "xhigh",
       "prompt": "prompts/cto.md",
-      "required_skills": [
-        "using-superpowers",
-        "writing-plans",
-        "using-git-worktrees",
-        "subagent-driven-development"
-      ]
+      "required_skills": []
     },
     "architect_codex": {
       "provider": "codex",
-      "model": "gpt-5.5",
+      "model": "gpt-5.3-codex",
       "effort": "high",
       "prompt": "prompts/architect.md",
-      "required_skills": [
-        "using-superpowers",
-        "gstack-plan-eng-review"
-      ]
+      "required_skills": []
     },
     "implementer_codex": {
       "provider": "codex",
-      "model": "gpt-5.3-codex",
+      "model": "gpt-5.2",
       "effort": "high",
       "prompt": "prompts/implementer.md",
-      "required_skills": [
-        "using-superpowers",
-        "subagent-driven-development",
-        "test-driven-development",
-        "systematic-debugging"
-      ]
+      "required_skills": []
     },
     "reviewer_codex": {
       "provider": "codex",
-      "model": "gpt-5.4",
-      "effort": "high",
+      "model": "gpt-5.3-codex",
+      "effort": "medium",
       "prompt": "prompts/reviewer.md",
-      "required_skills": [
-        "using-superpowers",
-        "subagent-driven-development"
-      ]
+      "required_skills": []
     },
     "auditor_codex": {
       "provider": "codex",
-      "model": "gpt-5.5",
-      "effort": "xhigh",
+      "model": "gpt-5.3-codex",
+      "effort": "high",
       "prompt": "prompts/auditor.md",
-      "required_skills": [
-        "using-superpowers",
-        "subagent-driven-development",
-        "finishing-a-development-branch"
-      ]
+      "required_skills": []
     }
   },
   "org_presets": {

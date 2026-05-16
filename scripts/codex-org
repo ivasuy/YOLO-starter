@@ -912,6 +912,7 @@ def architect_loop(run_dir: Path, config: dict[str, Any], mem: Memory, phase: di
     arch_id = f"architect-p{phase['no']}"
     iteration = 0
     review_focus: str | None = None
+    MAX_ITERATIONS = 5
     while True:
         iteration += 1
         a_payload = {
@@ -923,6 +924,7 @@ def architect_loop(run_dir: Path, config: dict[str, Any], mem: Memory, phase: di
             "spec_path": spec_path,
             "implementation_plan_path": plan_path,
             "iteration": iteration,
+            "max_iterations": MAX_ITERATIONS,
             "cto_review_focus": review_focus,
             "conversation": mem.get(arch_id),
         }
@@ -937,6 +939,7 @@ def architect_loop(run_dir: Path, config: dict[str, Any], mem: Memory, phase: di
             "implementation_plan_path": plan_path,
             "architect_feedback": a_out,
             "iteration": iteration,
+            "max_iterations": MAX_ITERATIONS,
             "conversation": mem.get("cto"),
         }
         c_out = call_role(run_dir, "cto", cto, c_payload, label=f"cto-loop-p{phase['no']}-{iteration:02d}")
@@ -944,6 +947,9 @@ def architect_loop(run_dir: Path, config: dict[str, Any], mem: Memory, phase: di
         status = str(c_out.get("status", "")).upper()
         if c_out.get("loop_done") or status in ("GREEN", "REJECTED"):
             return {"status": status, "iterations": iteration, "final_cto": c_out, "final_arch": a_out}
+        if iteration >= MAX_ITERATIONS:
+            emit_event(run_dir, "architect_loop_capped", iterations=iteration, msg="max iterations reached; treating last CTO output as GREEN")
+            return {"status": "GREEN", "iterations": iteration, "final_cto": c_out, "final_arch": a_out, "capped": True}
         review_focus = c_out.get("next_review_focus") or ""
 
 def run_task(run_dir: Path, config: dict[str, Any], mem: Memory, task: dict[str, Any],
@@ -1020,7 +1026,7 @@ def run_task(run_dir: Path, config: dict[str, Any], mem: Memory, task: dict[str,
                            phase_no=phase["no"], reason="implementer_blocked",
                            detail=i_out.get("reason", "") or json.dumps(i_out)[:1000],
                            stage="implementer", revision=revision, restartable=True)
-            return {"task_id": task_id, "status": "BLOCKED", "impl_out": i_out}
+            return {"task_id": task_id, "status": "BLOCKED", "impl_out": i_out, "task": task}
         r_payload = {
             "run_id": run_dir.name,
             "role": "reviewer",
@@ -1044,7 +1050,7 @@ def run_task(run_dir: Path, config: dict[str, Any], mem: Memory, task: dict[str,
                        worktree=str(wt_path))
             clear_failure(run_dir, task_id)
             return {"task_id": task_id, "status": "GREEN", "impl_out": i_out, "rev_out": r_out,
-                    "worktree": str(wt_path), "branch": task_branch}
+                    "worktree": str(wt_path), "branch": task_branch, "task": task}
         rev_findings = r_out.get("findings", [])
     emit_event(run_dir, "task_done", task_id=task_id, status="FAIL_MAX_REVISIONS", diff="0",
                worktree=str(wt_path), reason=f"max revisions exhausted ({revision})")
@@ -1052,7 +1058,7 @@ def run_task(run_dir: Path, config: dict[str, Any], mem: Memory, task: dict[str,
                    phase_no=phase["no"], reason="max_revisions_exhausted",
                    detail=f"last reviewer findings: {json.dumps(rev_findings)[:1000]}",
                    stage="reviewer_loop", revision=revision, restartable=True)
-    return {"task_id": task_id, "status": "FAIL", "impl_out": last_impl_out}
+    return {"task_id": task_id, "status": "FAIL", "impl_out": last_impl_out, "task": task}
 
 def dispatch_tasks(run_dir: Path, config: dict[str, Any], mem: Memory, phase: dict[str, Any],
                    plan_path: str, branch: str, task_graph: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -1076,6 +1082,7 @@ def phase_audit(run_dir: Path, config: dict[str, Any], mem: Memory, phase: dict[
     worktrees_info = [
         {
             "task_id": tr["task_id"],
+            "task": tr.get("task", {}),
             "branch": tr.get("branch"),
             "path": tr.get("worktree"),
             "implementer_output": tr.get("impl_out", {}),
@@ -1094,10 +1101,18 @@ def phase_audit(run_dir: Path, config: dict[str, Any], mem: Memory, phase: dict[
         a_payload = {
             "run_id": run_dir.name,
             "role": "auditor",
+            "phase": "audit",
             "phase_no": phase["no"],
             "phase_meta": phase,
+            "phase_branch": branch,
             "implementation_plan_path": plan_path,
-            "task_graph": task_results,
+            "task_graph": [
+                {"task_id": tr["task_id"], "task": tr.get("task", {}),
+                 "status": tr.get("status"), "branch": tr.get("branch"),
+                 "worktree": tr.get("worktree"),
+                 "impl_out": tr.get("impl_out", {}), "rev_out": tr.get("rev_out", {})}
+                for tr in task_results
+            ],
             "worktrees": worktrees_info,
             "audit_log_dir": str(audit_dir.relative_to(ROOT)),
             "audit_report_path": str(report_path.relative_to(ROOT)),
@@ -1121,7 +1136,9 @@ def phase_audit(run_dir: Path, config: dict[str, Any], mem: Memory, phase: dict[
                         f"# Phase {phase['no']} audit report\n\nAuto-generated. Merged: {merged_branches}\n"
                     )
             return {"status": "GREEN", "report": str(report_path.relative_to(ROOT)),
-                    "phase_summary": a_out.get("phase_summary", "")}
+                    "phase_summary": a_out.get("phase_summary", ""),
+                    "deferred_concerns": a_out.get("deferred_concerns", []),
+                    "non_blocking_observations": a_out.get("non_blocking_observations", [])}
         if status == "NEEDS_REVISION":
             redflags = a_out.get("redflags", [])
             for rf in redflags:
@@ -1138,7 +1155,7 @@ def phase_audit(run_dir: Path, config: dict[str, Any], mem: Memory, phase: dict[
                     "run_id": run_dir.name,
                     "role": "implementer",
                     "phase_no": phase["no"],
-                    "task": next((t for t in [tr.get("impl_out", {}).get("task", {}) for tr in task_results] if t), {}),
+                    "task": task_obj.get("task", {}),
                     "worktree_id": tid,
                     "branch": task_obj.get("branch"),
                     "implementation_plan_path": plan_path,
@@ -1154,7 +1171,7 @@ def phase_audit(run_dir: Path, config: dict[str, Any], mem: Memory, phase: dict[
             continue
         if status == "BLOCKED":
             return {"status": "BLOCKED", "reason": a_out.get("reason", "")}
-        if iteration >= 8:
+        if iteration >= 5:
             return {"status": "FAIL", "reason": "max audit iterations"}
 
 def ceo_phase_close(run_dir: Path, config: dict[str, Any], mem: Memory, phase: dict[str, Any],
@@ -1169,6 +1186,9 @@ def ceo_phase_close(run_dir: Path, config: dict[str, Any], mem: Memory, phase: d
         "spec_path": spec_path,
         "implementation_plan_path": plan_path,
         "audit_report_path": audit.get("report"),
+        "audit_summary": audit.get("phase_summary", ""),
+        "deferred_concerns": audit.get("deferred_concerns", []),
+        "non_blocking_observations": audit.get("non_blocking_observations", []),
         "pr": audit.get("pr", {}),
         "branch": branch,
         "project_md_path": "PROJECT.md",

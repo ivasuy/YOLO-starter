@@ -1,19 +1,22 @@
 # .codex/config.toml
-# Minimal Codex project config.
-# Goal: stop permission spam, keep edits inside workspace, and provide useful profiles.
+# Codex project config for the codex-org autonomous engineering org.
+#
+# Roles (ceo, cto, architect, implementer, reviewer, auditor) live in
+# .codex/agents/<role>.toml. Their canonical prompts live in prompts/<role>.md.
+# The codex-org pipeline reads prompts/<role>.md directly via scripts/codex-org.
 
-model = "gpt-5.4"
+model = "gpt-5.3-codex"
 model_provider = "openai"
 
-model_reasoning_effort = "medium"
+model_reasoning_effort = "high"
 plan_mode_reasoning_effort = "high"
 model_reasoning_summary = "auto"
 model_verbosity = "medium"
 
-# No repeated prompts for normal repo work.
+# No repeated prompts — codex-org runs unattended (yolo + danger-full-access).
 approval_policy = "never"
 
-# Safe default: Codex can write in this project, not the whole machine.
+# Full access required for git operations (commit, merge, worktree create).
 sandbox_mode = "danger-full-access"
 
 [agents]
