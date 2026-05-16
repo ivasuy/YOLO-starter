@@ -1,0 +1,73 @@
+{
+  "mode": "dry-run",
+  "artifact_slug": "example-mini-org-run",
+  "max_alignment_rounds": 3,
+  "max_review_iterations": 3,
+  "stale_timeout_seconds": 300,
+  "soft_retry_threshold": 1,
+  "escalation_threshold": 1,
+  "continue_after_needs_user": false,
+  "continue_other_tasks_on_failure": false,
+  "allow_ownership_overlap": false,
+  "final_summary": true,
+  "final_summary_role": "ceo",
+  "user_request": "Add the smallest useful feature described by the user.",
+  "executive_alignment": {
+    "enabled": true,
+    "max_rounds": 3,
+    "user_request": "User wants a feature. CEO should clarify product intent; CTO should critique feasibility and file ownership before implementation."
+  },
+  "roles": {
+    "ceo": {
+      "provider": "claude",
+      "model": "opus",
+      "permission_mode": "bypassPermissions",
+      "prompt": "prompts/ceo.md"
+    },
+    "cto": {
+      "provider": "codex",
+      "model": "gpt-5.5",
+      "effort": "xhigh",
+      "sandbox": "workspace-write",
+      "approval": "never",
+      "prompt": "prompts/cto.md"
+    },
+    "implementer": {
+      "provider": "codex",
+      "model": "gpt-5.3-codex",
+      "effort": "medium",
+      "sandbox": "workspace-write",
+      "approval": "never",
+      "prompt": "prompts/implementer.md"
+    },
+    "reviewer": {
+      "provider": "codex",
+      "model": "gpt-5.4",
+      "effort": "high",
+      "sandbox": "workspace-write",
+      "approval": "never",
+      "prompt": "prompts/reviewer.md"
+    }
+  },
+  "tasks": [
+    {
+      "id": "example-task",
+      "title": "Replace this with a concrete implementation task",
+      "branch": "agent/example-task",
+      "max_review_iterations": 5,
+      "continue_after_needs_user": true,
+      "depends_on": [],
+      "instructions": "Describe the exact change, acceptance criteria, assigned files, and checks.",
+      "files": [
+        "path/to/owned-file"
+      ],
+      "skills": [
+        "using-superpowers",
+        "test-driven-development"
+      ],
+      "checks": [
+        "replace-with-targeted-check"
+      ]
+    }
+  ]
+}

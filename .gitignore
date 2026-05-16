@@ -1,0 +1,15 @@
+.claude/worktrees/
+.claude/agent-memory-local/
+.codex/sessions/
+.codex/tmp/
+.entire/
+.env
+.env.*
+!.env.example
+*.log
+node_modules/
+dist/
+build/
+coverage/
+__pycache__/
+.DS_Store

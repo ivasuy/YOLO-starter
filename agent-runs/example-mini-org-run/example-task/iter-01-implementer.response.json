@@ -1,0 +1,35 @@
+{
+  "role": "implementer",
+  "provider": "codex",
+  "label": "iter-01",
+  "workdir": "/Users/vasuyadav/Downloads/Projects/project-starter/.worktrees/example-task",
+  "status": "GREEN",
+  "parsed": {
+    "status": "DRY_RUN",
+    "role": "implementer"
+  },
+  "raw_output": "{\"status\":\"DRY_RUN\"}",
+  "worker": {
+    "role": "implementer",
+    "provider": "codex",
+    "model": "gpt-5.3-codex",
+    "session_id": null,
+    "thread_id": null,
+    "pid": null,
+    "resume_supported": true,
+    "resume_ready": false,
+    "resume_strategy": "codex-exec-resume",
+    "session_transport": "live-process",
+    "process_model": "persistent",
+    "health": "active",
+    "workflow_status": "green",
+    "launch_count": 0,
+    "restart_count": 0,
+    "handoff_count": 1,
+    "last_transition": "result:green",
+    "last_launch_at": null,
+    "last_log_update_at": "2026-05-15T09:11:16.922885+00:00",
+    "last_error_summary": null,
+    "continuity_break_reason": null
+  }
+}

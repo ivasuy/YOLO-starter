@@ -1,0 +1,12 @@
+{
+  "role": "cto",
+  "provider": "codex",
+  "label": "alignment-02",
+  "workdir": "/Users/vasuyadav/Downloads/Projects/project-starter",
+  "status": "DRY_RUN",
+  "parsed": {
+    "status": "DRY_RUN",
+    "role": "cto"
+  },
+  "raw_output": "{\"status\":\"DRY_RUN\"}"
+}
