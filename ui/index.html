@@ -1,0 +1,967 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Codex Org Dashboard (Local)</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+
+        --bg: #0b0e14;
+        --panel: #101624;
+        --panel-2: #0f1320;
+        --text: #e6e9f2;
+        --muted: #9aa6bf;
+        --border: rgba(255, 255, 255, 0.12);
+        --shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+
+        --accent: #7aa2ff;
+        --good: #32d583;
+        --warn: #fdb022;
+        --bad: #f04438;
+
+        --role-ceo: #ff6b6b;
+        --role-cto: #4dabf7;
+        --role-architect: #9775fa;
+        --role-implementer: #20c997;
+        --role-reviewer: #ffd43b;
+        --role-auditor: #ffa94d;
+      }
+
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #f6f7fb;
+          --panel: #ffffff;
+          --panel-2: #ffffff;
+          --text: #101828;
+          --muted: #475467;
+          --border: rgba(16, 24, 40, 0.12);
+          --shadow: 0 10px 24px rgba(16, 24, 40, 0.12);
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+          Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        background: radial-gradient(
+            1200px 700px at 20% 0%,
+            rgba(122, 162, 255, 0.22),
+            transparent 55%
+          ),
+          radial-gradient(
+            900px 600px at 90% 20%,
+            rgba(50, 213, 131, 0.16),
+            transparent 55%
+          ),
+          var(--bg);
+        color: var(--text);
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .app {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px 16px 48px;
+      }
+
+      header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px 18px 14px;
+        background: color-mix(in srgb, var(--panel) 92%, transparent);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(10px);
+      }
+
+      header h1 {
+        margin: 0 0 6px;
+        font-size: 18px;
+        letter-spacing: 0.2px;
+      }
+
+      header p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.4;
+      }
+
+      .status {
+        display: grid;
+        gap: 6px;
+        justify-items: end;
+        text-align: right;
+      }
+
+      .status output {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--panel-2);
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .status output[data-kind="good"] {
+        border-color: color-mix(in srgb, var(--good) 65%, var(--border));
+        color: color-mix(in srgb, var(--good) 92%, var(--text));
+      }
+
+      .status output[data-kind="warn"] {
+        border-color: color-mix(in srgb, var(--warn) 65%, var(--border));
+        color: color-mix(in srgb, var(--warn) 92%, var(--text));
+      }
+
+      .status output[data-kind="bad"] {
+        border-color: color-mix(in srgb, var(--bad) 65%, var(--border));
+        color: color-mix(in srgb, var(--bad) 92%, var(--text));
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+        margin-top: 14px;
+      }
+
+      @media (min-width: 980px) {
+        .layout {
+          grid-template-columns: 360px 1fr;
+          align-items: start;
+        }
+      }
+
+      .panel {
+        background: color-mix(in srgb, var(--panel) 92%, transparent);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        overflow: clip;
+      }
+
+      .panel header {
+        box-shadow: none;
+        background: transparent;
+        border: 0;
+        border-bottom: 1px solid var(--border);
+        border-radius: 0;
+        padding: 14px 14px 12px;
+      }
+
+      .panel header h2 {
+        margin: 0;
+        font-size: 14px;
+        letter-spacing: 0.2px;
+      }
+
+      .panel header p {
+        margin: 6px 0 0;
+        font-size: 12px;
+      }
+
+      .panel .body {
+        padding: 14px;
+      }
+
+      fieldset {
+        border: 0;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 12px;
+      }
+
+      label {
+        display: grid;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      input[type="file"] {
+        width: 100%;
+        padding: 10px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--panel-2);
+        color: var(--text);
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 6px;
+      }
+
+      .actions .left,
+      .actions .right {
+        display: inline-flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      button {
+        appearance: none;
+        border: 1px solid var(--border);
+        background: var(--panel-2);
+        color: var(--text);
+        padding: 9px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+
+      button.primary {
+        background: color-mix(in srgb, var(--accent) 22%, var(--panel-2));
+        border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+      }
+
+      button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+
+      .toggle {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .hint {
+        margin: 0;
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      .placeholder {
+        margin: 0;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px dashed var(--border);
+        color: var(--muted);
+        background: color-mix(in srgb, var(--panel-2) 55%, transparent);
+        font-size: 12px;
+        line-height: 1.5;
+      }
+
+      .warnings {
+        display: grid;
+        gap: 10px;
+      }
+
+      .warnings ol {
+        margin: 0;
+        padding-left: 18px;
+        display: grid;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--panel-2);
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .pill strong {
+        font-weight: 600;
+        color: var(--text);
+      }
+
+      .role {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: color-mix(in srgb, var(--panel-2) 75%, transparent);
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .role[data-role="ceo"] {
+        border-color: color-mix(in srgb, var(--role-ceo) 60%, var(--border));
+      }
+      .role[data-role="cto"] {
+        border-color: color-mix(in srgb, var(--role-cto) 60%, var(--border));
+      }
+      .role[data-role="architect"] {
+        border-color: color-mix(in srgb, var(--role-architect) 60%, var(--border));
+      }
+      .role[data-role="implementer"] {
+        border-color: color-mix(in srgb, var(--role-implementer) 60%, var(--border));
+      }
+      .role[data-role="reviewer"] {
+        border-color: color-mix(in srgb, var(--role-reviewer) 60%, var(--border));
+      }
+      .role[data-role="auditor"] {
+        border-color: color-mix(in srgb, var(--role-auditor) 60%, var(--border));
+      }
+
+      .role .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--muted);
+      }
+      .role[data-role="ceo"] .dot {
+        background: var(--role-ceo);
+      }
+      .role[data-role="cto"] .dot {
+        background: var(--role-cto);
+      }
+      .role[data-role="architect"] .dot {
+        background: var(--role-architect);
+      }
+      .role[data-role="implementer"] .dot {
+        background: var(--role-implementer);
+      }
+      .role[data-role="reviewer"] .dot {
+        background: var(--role-reviewer);
+      }
+      .role[data-role="auditor"] .dot {
+        background: var(--role-auditor);
+      }
+
+      pre {
+        margin: 0;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: var(--panel-2);
+        overflow: auto;
+        font-size: 12px;
+        line-height: 1.45;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <div>
+          <h1>Codex Org Dashboard</h1>
+          <p>
+            Local-only HTML shell: pick an events file + state file, then parse
+            and render a single composed view model.
+          </p>
+        </div>
+        <div class="status">
+          <output id="statusText" role="status" aria-live="polite" data-kind="warn"
+            >Waiting for input…</output
+          >
+          <div class="pill" title="Role color key used by renderers">
+            <strong>Role colors</strong>
+            <span class="role" data-role="ceo"><span class="dot"></span>CEO</span>
+            <span class="role" data-role="cto"><span class="dot"></span>CTO</span>
+            <span class="role" data-role="architect"
+              ><span class="dot"></span>Architect</span
+            >
+            <span class="role" data-role="implementer"
+              ><span class="dot"></span>Impl</span
+            >
+            <span class="role" data-role="reviewer"
+              ><span class="dot"></span>Rev</span
+            >
+            <span class="role" data-role="auditor"
+              ><span class="dot"></span>Audit</span
+            >
+          </div>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="panel" aria-labelledby="controls-title">
+          <header>
+            <h2 id="controls-title">Controls</h2>
+            <p>Files are read via browser File APIs; no server required.</p>
+          </header>
+          <div class="body">
+            <fieldset>
+              <label>
+                Events log (JSONL)
+                <input
+                  id="eventsFile"
+                  type="file"
+                  accept=".jsonl,.log,.txt,application/json,text/plain"
+                />
+              </label>
+
+              <label>
+                State snapshot (JSON)
+                <input
+                  id="stateFile"
+                  type="file"
+                  accept=".json,application/json,text/plain"
+                />
+              </label>
+
+              <div class="actions">
+                <div class="left">
+                  <button id="parseBtn" class="primary" type="button" disabled>
+                    Parse &amp; render
+                  </button>
+                  <button id="clearBtn" type="button">Clear</button>
+                </div>
+                <div class="right">
+                  <label class="toggle" title="Re-parse automatically on file change">
+                    <input id="autoParse" type="checkbox" checked />
+                    Auto-parse
+                  </label>
+                </div>
+              </div>
+
+              <p class="hint" id="fileSummary">
+                No files selected.
+              </p>
+            </fieldset>
+          </div>
+        </section>
+
+        <div style="display: grid; gap: 14px">
+          <section class="panel warnings" aria-labelledby="warnings-title">
+            <header>
+              <h2 id="warnings-title">Warnings</h2>
+              <p>Parser warnings and orchestration errors surface here.</p>
+            </header>
+            <div class="body">
+              <p id="warningsEmpty" class="placeholder">
+                No warnings yet. Select files and parse.
+              </p>
+              <ol id="warningsList" hidden></ol>
+              <details id="debugDetails" hidden>
+                <summary class="hint">Debug payload</summary>
+                <pre id="debugPre"></pre>
+              </details>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="timeline-title">
+            <header>
+              <h2 id="timeline-title">Timeline</h2>
+              <p>Rendered from the same composed view model as Worktrees.</p>
+            </header>
+            <div class="body">
+              <div id="timelineRoot">
+                <p class="placeholder">
+                  Timeline will render here after parsing.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="worktrees-title">
+            <header>
+              <h2 id="worktrees-title">Worktrees</h2>
+              <p>Rendered from the same composed view model as Timeline.</p>
+            </header>
+            <div class="body">
+              <div id="worktreesRoot">
+                <p class="placeholder">
+                  Worktrees will render here after parsing.
+                </p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+	    </div>
+
+	    <script type="module">
+	      // IMPORTANT: avoid static ESM imports so the HTML shell can still open under
+	      // `file://` even when `./parser.js` / `./render.js` are missing or broken.
+	      //
+	      // Static import references (kept as comments for local greps/tooling):
+	      // import * as Parser from './parser.js';
+	      // import * as Render from './render.js';
+	
+	      let Parser = null;
+	      let Render = null;
+	
+	      async function tryImport(spec) {
+	        try {
+	          return { ok: true, ns: await import(spec), error: null };
+	        } catch (error) {
+	          return { ok: false, ns: null, error };
+	        }
+	      }
+	
+	      async function ensureRuntimeModulesLoaded() {
+	        const warnings = [];
+	
+	        if (!Parser) {
+	          const res = await tryImport('./parser.js');
+	          Parser = res.ns;
+	          if (!res.ok) warnings.push(`Failed to load ./parser.js: ${res.error?.message || String(res.error)}`);
+	        }
+	
+	        if (!Render) {
+	          const res = await tryImport('./render.js');
+	          Render = res.ns;
+	          if (!res.ok) warnings.push(`Failed to load ./render.js: ${res.error?.message || String(res.error)}`);
+	        }
+	
+	        return warnings;
+	      }
+
+	      const els = {
+	        eventsFile: document.getElementById('eventsFile'),
+	        stateFile: document.getElementById('stateFile'),
+	        parseBtn: document.getElementById('parseBtn'),
+        clearBtn: document.getElementById('clearBtn'),
+        autoParse: document.getElementById('autoParse'),
+        fileSummary: document.getElementById('fileSummary'),
+        statusText: document.getElementById('statusText'),
+        warningsEmpty: document.getElementById('warningsEmpty'),
+        warningsList: document.getElementById('warningsList'),
+        timelineRoot: document.getElementById('timelineRoot'),
+        worktreesRoot: document.getElementById('worktreesRoot'),
+        debugDetails: document.getElementById('debugDetails'),
+        debugPre: document.getElementById('debugPre'),
+      };
+
+      const state = {
+        events: { file: null, text: null, parsed: null, warnings: [] },
+        snapshot: { file: null, text: null, parsed: null, warnings: [] },
+        loadSeq: { events: 0, snapshot: 0 },
+        parseSeq: 0,
+        viewModel: null,
+        warnings: [],
+        lastError: null,
+      };
+
+      const INGEST_LIMITS = {
+        maxBytes: 12 * 1024 * 1024,
+        maxLines: 300_000,
+      };
+
+      function setStatus(message, kind) {
+        els.statusText.textContent = message;
+        els.statusText.dataset.kind = kind;
+      }
+
+      function countLinesUpToLimit(text, limit) {
+        if (text == null || text === '') return { lines: 0, exceeds: false };
+        let lines = 1;
+        for (let i = 0; i < text.length; i++) {
+          if (text.charCodeAt(i) === 10) {
+            lines++;
+            if (lines > limit) return { lines, exceeds: true };
+          }
+        }
+        return { lines, exceeds: false };
+      }
+
+      function toStringWarning(w) {
+        if (w == null) return null;
+        if (typeof w === 'string') return w;
+        if (w instanceof Error) return w.message || String(w);
+        try {
+          return JSON.stringify(w);
+        } catch {
+          return String(w);
+        }
+      }
+
+      function normalizeWarnings(input) {
+        if (!input) return [];
+        if (Array.isArray(input)) return input.map(toStringWarning).filter(Boolean);
+        return [toStringWarning(input)].filter(Boolean);
+      }
+
+      function normalizeParsedOutput(output) {
+        if (output == null) return { data: null, warnings: [] };
+        if (Array.isArray(output)) return { data: output, warnings: [] };
+        if (typeof output !== 'object') return { data: output, warnings: [] };
+
+        const possibleWarnings =
+          output.warnings ??
+          output.warning ??
+          output.issues ??
+          output.diagnostics ??
+          output.errors;
+
+        const data =
+          output.data ??
+          output.result ??
+          output.value ??
+          output.events ??
+          output.state ??
+          output.timeline ??
+          output.worktrees ??
+          output;
+
+        return { data, warnings: normalizeWarnings(possibleWarnings) };
+      }
+
+      async function callMaybe(fn, args) {
+        const out = fn(...args);
+        return out && typeof out.then === 'function' ? await out : out;
+      }
+
+      async function callFirst(parserNS, candidates) {
+        for (const [name, args] of candidates) {
+          const fn = parserNS[name];
+          if (typeof fn !== 'function') continue;
+          return { name, output: await callMaybe(fn, args) };
+        }
+        return { name: null, output: null };
+      }
+
+	      async function parseInputs(eventsText, snapshotText) {
+	        if (!Parser) {
+	          throw new Error(
+	            'Parser module not loaded. Ensure ./parser.js exists next to ui/index.html.'
+	          );
+	        }
+
+	        if (typeof Parser.parseDashboard === 'function') {
+	          const output = await callMaybe(Parser.parseDashboard, [{ eventsText, snapshotText }]);
+	          return { kind: 'parseDashboard', output };
+	        }
+
+        if (typeof Parser.parseAll === 'function') {
+          const output = await callMaybe(Parser.parseAll, [{ eventsText, snapshotText }]);
+          return { kind: 'parseAll', output };
+        }
+
+        const eventsCall = await callFirst(Parser, [
+          ['parseEventsText', [eventsText]],
+          ['parseEventsLog', [eventsText]],
+          ['parseEventLog', [eventsText]],
+          ['parseEvents', [eventsText]],
+        ]);
+
+        const snapshotCall = await callFirst(Parser, [
+          ['parseStateText', [snapshotText]],
+          ['parseStateSnapshot', [snapshotText]],
+          ['parseState', [snapshotText]],
+        ]);
+
+        return { kind: 'split', eventsCall, snapshotCall };
+      }
+
+      function composeViewModel(parsed) {
+        if (parsed && typeof parsed === 'object' && 'output' in parsed) {
+          const normalized = normalizeParsedOutput(parsed.output);
+          return {
+            source: { kind: parsed.kind },
+            events: normalized.data?.events ?? normalized.data?.eventLog ?? normalized.data,
+            snapshot: normalized.data?.snapshot ?? normalized.data?.state ?? normalized.data,
+            timeline: normalized.data?.timeline ?? null,
+            worktrees: normalized.data?.worktrees ?? null,
+            warnings: normalized.warnings,
+            raw: normalized.data,
+          };
+        }
+
+        if (parsed && parsed.kind === 'split') {
+          const ev = normalizeParsedOutput(parsed.eventsCall.output);
+          const st = normalizeParsedOutput(parsed.snapshotCall.output);
+
+          return {
+            source: {
+              kind: parsed.kind,
+              eventsParser: parsed.eventsCall.name,
+              snapshotParser: parsed.snapshotCall.name,
+            },
+            events: ev.data,
+            snapshot: st.data,
+            timeline: null,
+            worktrees: null,
+            warnings: [...ev.warnings, ...st.warnings],
+            raw: { events: ev.data, snapshot: st.data },
+          };
+        }
+
+        const normalized = normalizeParsedOutput(parsed);
+        return {
+          source: { kind: 'unknown' },
+          events: normalized.data,
+          snapshot: null,
+          timeline: null,
+          worktrees: null,
+          warnings: normalized.warnings,
+          raw: normalized.data,
+        };
+      }
+
+      function renderWarnings(warnings) {
+        const items = (warnings || []).map(toStringWarning).filter(Boolean);
+
+        if (items.length === 0) {
+          els.warningsEmpty.hidden = false;
+          els.warningsList.hidden = true;
+          els.warningsList.innerHTML = '';
+          els.debugDetails.hidden = true;
+          els.debugPre.textContent = '';
+          return;
+        }
+
+        els.warningsEmpty.hidden = true;
+        els.warningsList.hidden = false;
+        els.warningsList.innerHTML = items
+          .map((w) => `<li>${escapeHtml(w)}</li>`)
+          .join('');
+
+        els.debugDetails.hidden = false;
+        els.debugPre.textContent = JSON.stringify(
+          { warnings: items, source: state.viewModel?.source ?? null },
+          null,
+          2
+        );
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')
+          .replaceAll("'", '&#39;');
+      }
+
+      function updateSummary() {
+        const parts = [];
+        if (state.events.file) parts.push(`events: ${state.events.file.name}`);
+        if (state.snapshot.file) parts.push(`state: ${state.snapshot.file.name}`);
+        els.fileSummary.textContent = parts.length ? parts.join(' • ') : 'No files selected.';
+        els.parseBtn.disabled = !(state.events.file || state.snapshot.file);
+      }
+
+      async function loadFile(which) {
+        const input = which === 'events' ? els.eventsFile : els.stateFile;
+        const file = input.files && input.files[0] ? input.files[0] : null;
+
+        if (which === 'events') state.events.file = file;
+        else state.snapshot.file = file;
+
+        // Reset the input so re-selecting the same file later reliably fires `change`.
+        // Keep the File handle in `state.*.file` so we can still parse/render.
+        input.value = '';
+
+        updateSummary();
+
+        if (!file) {
+          if (which === 'events') state.events.text = null;
+          else state.snapshot.text = null;
+          return;
+        }
+
+        const seq =
+          which === 'events' ? ++state.loadSeq.events : ++state.loadSeq.snapshot;
+
+        try {
+          if (typeof file.size === 'number' && file.size > INGEST_LIMITS.maxBytes) {
+            const msg =
+              `${file.name} is too large (${file.size.toLocaleString()} bytes). ` +
+              `Max allowed is ${INGEST_LIMITS.maxBytes.toLocaleString()} bytes.`;
+            if (which === 'events') state.events.text = null;
+            else state.snapshot.text = null;
+            state.warnings = [msg];
+            renderWarnings(state.warnings);
+            setStatus('File rejected (too large).', 'bad');
+            return;
+          }
+
+          setStatus(`Reading ${file.name}…`, 'warn');
+          const text = await file.text();
+
+          const stillLatest =
+            which === 'events' ? seq === state.loadSeq.events : seq === state.loadSeq.snapshot;
+          if (!stillLatest) return;
+
+          const { exceeds } = countLinesUpToLimit(text, INGEST_LIMITS.maxLines);
+          if (exceeds) {
+            const msg =
+              `${file.name} has too many lines (>${INGEST_LIMITS.maxLines.toLocaleString()}). ` +
+              `Refusing to ingest to avoid freezing the browser.`;
+            if (which === 'events') state.events.text = null;
+            else state.snapshot.text = null;
+            state.warnings = [msg];
+            renderWarnings(state.warnings);
+            setStatus('File rejected (too many lines).', 'bad');
+            return;
+          }
+
+          if (which === 'events') state.events.text = text;
+          else state.snapshot.text = text;
+          setStatus('Ready to parse.', 'warn');
+        } catch (err) {
+          const stillLatest =
+            which === 'events' ? seq === state.loadSeq.events : seq === state.loadSeq.snapshot;
+          if (!stillLatest) return;
+          state.lastError = err;
+          const msg = `Failed to read ${file.name}: ${err?.message || String(err)}`;
+          state.warnings = [msg];
+          renderWarnings(state.warnings);
+          setStatus('File read failed.', 'bad');
+        }
+      }
+
+	      async function parseAndRender() {
+	        const haveAny = Boolean(state.events.text || state.snapshot.text);
+	        if (!haveAny) {
+	          setStatus('Select at least one file.', 'warn');
+	          return;
+	        }
+
+          const parseSeq = ++state.parseSeq;
+
+	        try {
+	          const moduleWarnings = await ensureRuntimeModulesLoaded();
+            if (parseSeq !== state.parseSeq) return;
+	          if (!Parser) {
+	            state.warnings = [
+	              ...moduleWarnings,
+	              'Parser module not loaded. Ensure ./parser.js exists next to ui/index.html.',
+	            ];
+	            renderWarnings(state.warnings);
+	            setStatus('Parser module unavailable (see warnings).', 'bad');
+	            return;
+	          }
+
+	          setStatus('Parsing…', 'warn');
+
+	          const parsed = await parseInputs(state.events.text, state.snapshot.text);
+            if (parseSeq !== state.parseSeq) return;
+	          state.viewModel = composeViewModel(parsed);
+
+	          const warnings = [
+	            ...moduleWarnings,
+	            ...normalizeWarnings(state.viewModel.warnings),
+	            ...(state.viewModel.source?.kind === 'split' &&
+	            (!state.viewModel.source.eventsParser || !state.viewModel.source.snapshotParser)
+	              ? [
+	                  `Parser exports not found. Expected parse functions like parseEvents* / parseState* in ./parser.js.`,
+	                ]
+	              : []),
+	          ];
+
+	          state.warnings = warnings;
+	          renderWarnings(warnings);
+
+	          if (!Render) {
+	            if (!warnings.some((w) => String(w).includes('./render.js'))) {
+	              warnings.unshift(
+	                'Render module not loaded. Ensure ./render.js exists next to ui/index.html. Timeline/Worktrees will remain empty.'
+	              );
+	            }
+	            state.warnings = warnings;
+	            renderWarnings(warnings);
+	            setStatus('Parsed (render module unavailable).', warnings.length ? 'warn' : 'good');
+	            return;
+	          }
+
+	          const timelineFn =
+	            Render.renderTimeline ||
+	            Render.renderTimelineSection ||
+	            Render.renderTimelineInto ||
+	            Render.renderTimelineView;
+
+          const worktreesFn =
+            Render.renderWorktrees ||
+            Render.renderWorktreesSection ||
+            Render.renderWorktreesInto ||
+            Render.renderWorktreeView;
+
+          if (typeof timelineFn !== 'function' || typeof worktreesFn !== 'function') {
+            const missing = [];
+            if (typeof timelineFn !== 'function') missing.push('renderTimeline(...)');
+            if (typeof worktreesFn !== 'function') missing.push('renderWorktrees(...)');
+            warnings.unshift(
+              `Render exports missing in ./render.js: ${missing.join(
+                ', '
+              )}. Timeline/Worktrees will remain empty until render module is implemented.`
+            );
+            renderWarnings(warnings);
+            setStatus('Parsed (render module incomplete).', warnings.length ? 'warn' : 'good');
+            return;
+          }
+
+          if (parseSeq !== state.parseSeq) return;
+
+          await callMaybe(timelineFn, [state.viewModel, els.timelineRoot]);
+          await callMaybe(worktreesFn, [state.viewModel, els.worktreesRoot]);
+
+          setStatus(`Rendered.`, warnings.length ? 'warn' : 'good');
+        } catch (err) {
+          if (parseSeq !== state.parseSeq) return;
+          state.lastError = err;
+          const msg = `Parse/render failed: ${err?.message || String(err)}`;
+          state.warnings = [msg];
+          renderWarnings(state.warnings);
+          setStatus('Parse/render failed.', 'bad');
+        }
+      }
+
+      function clearAll() {
+        els.eventsFile.value = '';
+        els.stateFile.value = '';
+        state.events = { file: null, text: null, parsed: null, warnings: [] };
+        state.snapshot = { file: null, text: null, parsed: null, warnings: [] };
+        state.viewModel = null;
+        state.warnings = [];
+        state.lastError = null;
+        updateSummary();
+        renderWarnings([]);
+        els.timelineRoot.innerHTML =
+          '<p class="placeholder">Timeline will render here after parsing.</p>';
+        els.worktreesRoot.innerHTML =
+          '<p class="placeholder">Worktrees will render here after parsing.</p>';
+        setStatus('Waiting for input…', 'warn');
+      }
+
+      els.eventsFile.addEventListener('change', async () => {
+        await loadFile('events');
+        if (els.autoParse.checked) await parseAndRender();
+      });
+
+      els.stateFile.addEventListener('change', async () => {
+        await loadFile('state');
+        if (els.autoParse.checked) await parseAndRender();
+      });
+
+	      els.parseBtn.addEventListener('click', parseAndRender);
+	      els.clearBtn.addEventListener('click', clearAll);
+
+	      updateSummary();
+	    </script>
+	  </body>
+	</html>
