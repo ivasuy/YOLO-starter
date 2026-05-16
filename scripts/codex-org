@@ -960,6 +960,26 @@ def run_task(run_dir: Path, config: dict[str, Any], mem: Memory, task: dict[str,
         "task": task, "phase": phase, "plan_path": plan_path,
         "branch": branch, "task_branch": task_branch, "worktree": str(wt_path),
     })
+    # Self-heal: if the phase branch no longer exists (e.g. user deleted it
+    # between runs, or this is a restart after manual cleanup), recreate it
+    # from main/master/HEAD so `git worktree add ... <phase-branch>` succeeds.
+    with _git_lock:
+        if git("rev-parse", "--verify", branch, check=False).returncode != 0:
+            base = "main"
+            if git("rev-parse", "--verify", "main", check=False).returncode != 0:
+                base = "master" if git("rev-parse", "--verify", "master", check=False).returncode == 0 else "HEAD"
+            bb = git("branch", branch, base, check=False)
+            if bb.returncode == 0:
+                emit_event(run_dir, "phase_branch", branch=branch, base=f"{base} (auto-recreated)")
+            else:
+                err = bb.stderr.strip()[:200]
+                emit_event(run_dir, "task_done", task_id=task_id, status="ERROR", diff="0",
+                           worktree=str(wt_path),
+                           reason=f"phase branch missing and recreate failed: {err}")
+                record_failure(run_dir, task_id=task_id, worktree=str(wt_path), branch=task_branch,
+                               phase_no=phase["no"], reason="phase_branch_missing",
+                               detail=err, stage="worktree", restartable=True)
+                return {"task_id": task_id, "status": "ERROR", "error": err}
     try:
         create_worktree(wt_path, task_branch, branch)
         emit_event(run_dir, "worktree_create", path=str(wt_path), branch=task_branch)
@@ -1661,9 +1681,12 @@ def cmd_restart(args: argparse.Namespace) -> int:
     if not failure:
         print(c("33", f"warn: no failure record for {args.task}; restarting anyway"))
     mem = Memory(run_dir)
+    # recompute the canonical task branch name in case persisted meta is stale
+    expected_task_branch = f"{meta.get('branch','?')}--task-{args.task}"
     print(c("1;36", f"restarting task={args.task} run={args.run_id}"))
-    print(c("90", f"  worktree: {meta.get('worktree','?')}"))
-    print(c("90", f"  branch:   {meta.get('task_branch','?')}"))
+    print(c("90", f"  worktree:     {meta.get('worktree','?')}"))
+    print(c("90", f"  phase branch: {meta.get('branch','?')}"))
+    print(c("90", f"  task branch:  {expected_task_branch}"))
     emit_event(run_dir, "task_restart", task_id=args.task, run_id=args.run_id)
     try:
         result = run_task(run_dir, config, mem,
