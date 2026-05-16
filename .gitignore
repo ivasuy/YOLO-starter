@@ -27,3 +27,9 @@ docs/superpowers/specs/*
 
 docs/superpowers/plans/*
 !docs/superpowers/plans/.gitkeep
+
+# workflow/ keeps only the canonical template config; agent-generated
+# workflow files (e.g. ad-hoc tasks.json runs) never get staged.
+workflow/*
+!workflow/org.defaults.json
+!workflow/tasks.example.json
