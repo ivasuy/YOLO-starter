@@ -772,6 +772,10 @@
         if (which === 'events') state.events.file = file;
         else state.snapshot.file = file;
 
+        // Reset the input so re-selecting the same file later reliably fires `change`.
+        // Keep the File handle in `state.*.file` so we can still parse/render.
+        input.value = '';
+
         updateSummary();
 
         if (!file) {
