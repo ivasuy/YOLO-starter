@@ -16,23 +16,10 @@
 <p align="center"><em>One prompt in. Phased, reviewed, audited PRs out.<br><code>--dangerously-bypass-approvals-and-sandbox</code> with adult supervision (mostly).</em></p>
 
 > A single ~1000-line Python script that beats the `codex` CLI into a phased **CEO → CTO → Architect → (Implementer ↔ Reviewer) → Auditor** pipeline. Just a script you bend until it looks like your project.
->
-> <sub>The repo ships with a script binary still called <code>codex-org</code> — that's the filename, not the brand. The brand is YOLO starter.</sub>
-
-> **Michael Scott:** *"I'm not superstitious, but I am a little stitious."* — same energy as running this script in production.
 
 <p align="center">
-  <img src="docs/assets/office-michael-declare.gif" alt="Michael Scott declares bankruptcy energy" width="380" onerror="this.style.display='none'">
+  <img src="docs/assets/office-declare.gif" alt="I declare bankruptcy!" width="380">
 </p>
-
-<!--
-  Optional: drop these files in docs/assets/ and they'll just light up:
-     office-michael-declare.gif   (top: 'I declare bankruptcy!' vibes)
-     office-dwight-false.gif      (in 'who is this NOT for' — 'False.')
-     office-michael-nogod.gif     (in 'when things break' — 'No God! Please No!')
-     office-jim-camera.gif        (in disclaimer — Jim staring at the camera)
-  Until you do, the placeholders gracefully no-op.
--->
 
 ---
 
@@ -46,22 +33,14 @@ You are this person:
 - You want to lean the fuck back, sip something, and watch your codex quota evaporate while a tiny org of agents ships a phase for you.
 - You've configured a TOML file in your life and survived.
 
-> **Michael:** *"I'm not to be trifled with."* — neither is your codex bill, btw. Configure cheap models.
-
 ## Who this is NOT for
 
 If you nod at any of these, this script will **make your life materially worse**:
-
-<p align="center">
-  <img src="docs/assets/office-dwight-false.gif" alt="Dwight: False." width="380" onerror="this.style.display='none'">
-</p>
 
 - "I don't know what I'm building, the AI will figure it out." — Cool, it absolutely will figure out *something*. You will not like it. You will rage-tweet about it.
 - "I want enterprise-grade orchestration with SOC2, SSO, and a man named Greg on the support line." — Wrong door, champ. Buy a platform.
 - "I want a UI, dashboards, multi-provider routing, OAuth-connected agents, and a virtual office of fake employees." — Different tool category. See below.
 - "I want guaranteed correct code." — Lol. Lmao, even. ROFL, if you're into vintage.
-
-> **Dwight:** *"False."* — to all of the above. Read the next section before you complain.
 
 This is an **experimental, opinionated, single-script starter** for your next/existing **side project**. Use at your own risk. We do not take ownership of whatever the agents do to your repo. The only thing we guarantee is **the script runs** — given a real prompt, an authenticated `codex`, and a git repo that exists.
 
@@ -95,8 +74,6 @@ The script shells out to `codex exec --json` everywhere — that's hardcoded bec
 
 What you **cannot** do (without surgery) is have Claude Code or Gemini fill one of the **roles** (CEO/CTO/Implementer/etc) inside the pipeline. The CEO is `codex exec`. The CTO is `codex exec`. The Implementer is `codex exec`. Six of them. All codex. If you want a Claude-flavored Implementer, fork the script, swap the role's binary, re-glue the JSON parser. It's a hundred lines of Python. You can do it. I just didn't, because **I built this for me, and I use codex**. Sue me. (Don't.)
 
-> **Michael:** *"You miss 100% of the shots you don't take. — Wayne Gretzky."* — Michael Scott. Go fork it.
-
 **TL;DR:** any agent can drive this script from outside. No non-codex agent is wired in as a role inside this script. Different verbs, different problems.
 
 ---
@@ -120,9 +97,18 @@ So I wrote this. It's not pretty. It's not enterprise. It's a single Python scri
 4. Run Implementer ↔ Reviewer pairs in **isolated git worktrees** so when one of them inevitably loses its mind, it only ruins its own worktree, not yours.
 5. Run an Auditor across worktrees before anything touches `main` — and even then, only via a PR you have to merge yourself, you adult, you.
 
-Yes, `codex` already has YOLO mode. Yes, it works fine on small scoped tasks. But it will happily run in a single directory, hit its turn limit, write half a feature, and then just… stop, like a Roomba in front of a dark hallway. This script gives YOLO mode **structure**: a phase plan from your CEO conversation, a worktree per task, an implementer/reviewer pair per worktree, an auditor on the phase branch. If one agent shits the bed, the blast radius is one worktree. The other tasks keep going like nothing happened. You can restart the failed one with one command and zero feelings.
+Yes, `codex` already has YOLO mode. Yes, it works fine on small scoped tasks. But it will happily run in a single directory, hit its turn limit, write half a feature, and then just… stop, like a Roomba in front of a dark hallway.
 
-> **Michael:** *"Would I rather be feared or loved? Easy. Both. I want people to be afraid of how much they love me."* — also my relationship with `--dangerously-bypass-approvals-and-sandbox`.
+You can also run `codex` with skill frameworks like [**gstack**](https://github.com/garrytan/gstack) (Garry Tan's opinionated Claude-Code-and-also-Codex setup — CEO, Designer, Eng Manager, QA, etc. as skills) or [**superpowers**](https://github.com/obra/superpowers) (Obra's composable agentic-skills framework — brainstorming, worktrees, writing-plans, TDD, the whole shelf). The CEO/CTO archetypes here will behave roughly the same as theirs — those frameworks influenced this one and you can absolutely use them together. But you trade one set of problems for another:
+
+- standalone codex still stops at one phase (turn limit, context exhaustion, sandbox boredom)
+- with gstack or superpowers attached, codex starts spawning sub-agents per skill — fantastic until it overshoots scope, loops forever inside one skill, or stalls in a sub-call you can't see
+
+This script's bet is different: pull only the **load-bearing behavior** from those skill frameworks (TDD discipline, completeness gates, systematic debugging, confidence calibration, anti-feature-creep, the actually-useful parts), **inline it directly into each role's prompt**, and **cap the agent fan-out** — per task: one Implementer, one Reviewer (paired), and one Auditor at the phase boundary. No mystery sub-agents. No context starvation. The agents actually finish what the CEO spec asks for. Call it [superpowers](https://github.com/obra/superpowers) on steroids with a leash, or [gstack](https://github.com/garrytan/gstack) without the kanban — whichever metaphor lands.
+
+So: this script gives YOLO mode **structure** — a phase plan from your CEO conversation, a worktree per task, an implementer/reviewer pair per worktree, an auditor on the phase branch. If one agent shits the bed, the blast radius is one worktree. The other tasks keep going like nothing happened. You can restart the failed one with one command and zero feelings.
+
+You can configure agent count, models, skills, and prompts however suits you. The script does not care.
 
 Have I shipped real things with this? Yeah. The catch: **you have to be smart enough and elaborate enough to actually describe what you want**. If you give the CEO three sentences and a vibe, you get three sentences and a vibe back, in code form. Garbage in, garbage worktrees out. Cope.
 
@@ -214,7 +200,7 @@ scripts/codex-org start "redesign onboarding to 3 steps" --ceo-mode product
 scripts/codex-org start "build a /hello endpoint" --detach
 ```
 
-`start` prints the run id on line 1, because line 1 is sacred:
+`start` prints the run id on the first line of its output:
 
 ```
 run started: codex-org-a1b2c3d4
@@ -222,9 +208,7 @@ run started: codex-org-a1b2c3d4
   events: agent-runs/codex-org-a1b2c3d4/events.jsonl
 ```
 
-Run id format: `codex-org-<8 hex>`. Short, copy-pasteable, no slug noise, no UUIDs that make you feel insane.
-
-> **Michael:** *"K-E-V-I-N. Kevin."* — your run id is shorter than that. Be grateful.
+Run id format: `codex-org-<8 hex>` — short and copy-pasteable.
 
 ## Get the run id later (because you forgot it)
 
@@ -326,8 +310,6 @@ scripts/codex-org stop <run-id>       # mark stopped; in-flight role calls finis
 
 The run won't be murdered mid-thought. It'll finish whatever role-call is in flight and then quietly stop accepting new ones. Civilized.
 
-> **Michael:** *"I want to be a Bond villain in a way that I'm just sitting back and being like 'no, no, stop.'"* — that's `stop`. That's the command.
-
 ## Failed tasks & restart (a.k.a. forgiveness)
 
 A task is marked **failed** only on genuine failure — never on a still-running or stalled role. This is on purpose. "Slow" and "broken" are not synonyms, no matter how impatient you are.
@@ -339,6 +321,11 @@ A task is marked **failed** only on genuine failure — never on a still-running
 - `PARSE_ERROR` after one strict retry (aborts the whole run, logged in `state.json`, deeply embarrassing for the agent)
 
 ### What does NOT count as failed
+
+<p align="center">
+  <img src="docs/assets/office-dwight-false.gif" alt="Dwight: False." width="380">
+</p>
+
 - a long-running codex call → `ACTIVE` (it's thinking, leave it alone)
 - no new agent stream for > 10 min → `STALLED` (still not a fail; the agent might be reasoning very hard about a one-line change)
 
@@ -398,8 +385,6 @@ cat agent-runs/<run-id>/state.json
 ```
 The `reason` field tells you what stopped it: `parse_error`, `phase_branch_create_failed`, `all_tasks_failed`, `audit_failed`, `intake_failed`, `no_tasks`, `not_a_git_repo`, `no_codex_cli`. Fix the root cause, then `restart` the affected task or start a fresh run. The reason field is brutally honest. Appreciate that.
 
-> **Dwight:** *"Whenever I'm about to do something, I think 'would an idiot do that?' and if they would, I do not do that thing."* — `read state.json` is the smart move. Be Dwight.
-
 ## Where things land (so you can stop pretending to know)
 
 ```
@@ -446,7 +431,7 @@ This is a starter. **You are expected to edit things.** Nothing is sacred. There
 
 - **Models & reasoning effort** → `workflow/org.defaults.json` per role. Want cheap? `gpt-5-mini` with `reasoning_effort: "low"` on the implementers, keep the architect/auditor higher because they're the ones catching bullets. Want premium? Crank everyone to `high`, watch your quota cosplay as a dumpster fire.
 - **Role behavior** → `prompts/<role>.md`. Full contract per role — TDD policy, debugging discipline, completeness gates, confidence calibration, the whole liturgy. Want to skip TDD? Delete the section. Want a stricter security review? Add one. Want the CEO to refuse to ship anything without an ADR? Be my guest. Want a haiku at the top of every PR? Live your truth.
-- **Skills as prompts** → there is no skill loader and I will die on this hill. If you want skill-like behavior, paste the content into the relevant `prompts/<role>.md`. The prompts are already optimized to produce decent output, but bolt on whatever taxonomy you want. The script does not care.
+- **Skills as prompts** → there is no skill loader and I will die on this hill. If you want skill-like behavior from [gstack](https://github.com/garrytan/gstack), [superpowers](https://github.com/obra/superpowers), or your own taxonomy, paste the relevant skill content directly into `prompts/<role>.md`. The role prompts are already optimized to produce decent output; layer on whatever skills you actually need, drop what you don't. The script does not care — but your role prompt is now load-bearing, so don't paste in 50KB of contradictory advice.
 - **Codex CLI behavior** → `.codex/config.toml` (already `danger-full-access`, because we don't half-ass). Per-role TUI configs (for direct codex usage outside the pipeline) live in `.codex/agents/<role>.toml`.
 - **The script itself** → `scripts/codex-org`. ~1000 lines of Python. **Read it.** Change it. It's not a black box. There is no black box. Black boxes are for people who don't deserve to know.
 
@@ -456,14 +441,12 @@ This is a starter. **You are expected to edit things.** Nothing is sacred. There
 
 Repeating myself because it bears repeating: any external agent can run `scripts/codex-org start "..."` and parse `events.jsonl` to coordinate this thing from above. **Other CLIs are first-class callers. They are not first-class roles.** If you want a non-codex role inside the pipeline, fork the script and re-wire `_run_role_call()` to dispatch on role → binary. It's a small surgery. I just didn't do it. Codex is what I use. This is my starter. Go fork yours.
 
-> **Michael:** *"I'm not a businessman, I'm a business, man."* — feel free to fork. It's open source. Capitalism is a tool.
-
 ---
 
 ## When things break (and they will, oh god they will)
 
 <p align="center">
-  <img src="docs/assets/office-michael-nogod.gif" alt="No God! Please No!" width="380" onerror="this.style.display='none'">
+  <img src="docs/assets/office-no.gif" alt="No. No no no." width="380">
 </p>
 
 Look for these in the stream:
@@ -474,8 +457,6 @@ Look for these in the stream:
 - `BLOCKED` (red) → fatal stop; check `state.json` `reason` field. The run gave up. Read the field. Fix the cause. Try again. Or don't.
 
 Every event is in `agent-runs/<run-id>/events.jsonl`. Every role call is logged with full prompt + raw output under `logs/`. **Read them.** They are the ground truth. The orgchart is a summary; the JSONL is the receipts; the logs are the surveillance footage. The agents leave a paper trail because we make them. Use it.
-
-> **Michael:** *"NO! NO! GOD! PLEASE NO!"* — when you `git log --oneline -20` and realize what got merged.
 
 ---
 
@@ -506,14 +487,12 @@ bin/                         # archived (claude wrappers, old runner, docs — g
 
 See `prompts/<role>.md` for the full contract per role. They're long. They're opinionated. They're the actual product.
 
-> **Dwight:** *"In an ideal world, I would have all of the bears shot."* — in an ideal world, the auditor would catch every bug. Neither world exists.
-
 ---
 
 ## Disclaimer (the legally-not-binding-but-please-actually-listen part)
 
 <p align="center">
-  <img src="docs/assets/office-jim-camera.gif" alt="Jim stares at the camera" width="380" onerror="this.style.display='none'">
+  <img src="docs/assets/office-jim-camera.gif" alt="Jim stares at the camera" width="380">
 </p>
 
 - This is an **experimental, single-author starter**. No SLAs. No support. No promises about your weekend, your quota, or your sanity.
@@ -524,16 +503,13 @@ See `prompts/<role>.md` for the full contract per role. They're long. They're op
 - Side projects: yes. Production: at your own risk. Enterprise: please, for the love of god, no.
 - The example prompts contain mild profanity. This is on purpose, it's a vibe. You can change them. It's a starter. Make it corporate if you want. I won't.
 
-> **Michael:** *"I'm not superstitious, but I am a little stitious."* — about your PR, before merging. Stay a little stitious.
->
-> **Jim:** *[looks at camera]* — that's the whole vibe of this section.
-
 **Don't hate the player. Hate the game.** Now go ship something dumb and fun and possibly slightly broken.
 
 ---
 
-*If you actually wanted multi-provider orchestration, a UI, a kanban board, a virtual office of fake employees, or "agentic productivity" with a capital A: check out [GSD](https://github.com/gsd-build/get-shit-done), [Claw Orchestrator](https://github.com/Enderfga/claw-orchestrator), [Composio's agent-orchestrator](https://github.com/ComposioHQ/agent-orchestrator), or the [awesome-agent-orchestrators](https://github.com/andyrewlee/awesome-agent-orchestrators) list. They're better at being that than this script will ever be. This is the chef's knife. They're the entire kitchen. Pick the right tool. I won't be mad.*
+*If you actually wanted multi-provider orchestration, a UI, a kanban board, a virtual office of fake employees, or "agentic productivity" with a capital A: check out [GSD](https://github.com/gsd-build/get-shit-done), [Claw Orchestrator](https://github.com/Enderfga/claw-orchestrator), [Composio's agent-orchestrator](https://github.com/ComposioHQ/agent-orchestrator), [gstack](https://github.com/garrytan/gstack), [superpowers](https://github.com/obra/superpowers), or the [awesome-agent-orchestrators](https://github.com/andyrewlee/awesome-agent-orchestrators) list. They're better at being that than this script will ever be. This is the chef's knife. They're the entire kitchen. Pick the right tool. I won't be mad.*
 
 <p align="center">
-  <sub>made with coffee, spite, and one (1) Python file · YOLO mode enabled · vibes immaculate · don't email me</sub>
+  <sub>made with coffee, spite, and one (1) Python file · YOLO mode enabled · vibes immaculate · don't email me</sub><br>
+  <sub>this README was written by <a href="https://claude.com/claude-code">Claude Code</a> · the script it documents only runs <code>codex</code> · the irony is not lost on me</sub>
 </p>
