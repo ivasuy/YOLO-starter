@@ -503,11 +503,15 @@ See `prompts/<role>.md` for the full contract per role. They're long. They're op
 - Side projects: yes. Production: at your own risk. Enterprise: please, for the love of god, no.
 - The example prompts contain mild profanity. This is on purpose, it's a vibe. You can change them. It's a starter. Make it corporate if you want. I won't.
 
-**Don't hate the player. Hate the game.** Now go ship something dumb and fun and possibly slightly broken.
+Now go ship something dumb and fun and possibly slightly broken.
 
 ---
 
-*If you actually wanted multi-provider orchestration, a UI, a kanban board, a virtual office of fake employees, or "agentic productivity" with a capital A: check out [GSD](https://github.com/gsd-build/get-shit-done), [Claw Orchestrator](https://github.com/Enderfga/claw-orchestrator), [Composio's agent-orchestrator](https://github.com/ComposioHQ/agent-orchestrator), [gstack](https://github.com/garrytan/gstack), [superpowers](https://github.com/obra/superpowers), or the [awesome-agent-orchestrators](https://github.com/andyrewlee/awesome-agent-orchestrators) list. They're better at being that than this script will ever be. This is the chef's knife. They're the entire kitchen. Pick the right tool. I won't be mad.*
+*If you actually wanted **multi-provider orchestration**, a UI, a kanban board, a virtual office of fake employees, or "agentic productivity" with a capital A: check out [GSD](https://github.com/gsd-build/get-shit-done), [Claw Orchestrator](https://github.com/Enderfga/claw-orchestrator), [Composio's agent-orchestrator](https://github.com/ComposioHQ/agent-orchestrator), or the [awesome-agent-orchestrators](https://github.com/andyrewlee/awesome-agent-orchestrators) list.*
+
+*If you wanted a **skill framework** — composable, opinionated agent behaviors that snap into your existing CLI — check out [gstack](https://github.com/garrytan/gstack) or [superpowers](https://github.com/obra/superpowers).*
+
+*Or use this. I don't care. Pick the right tool. I won't be mad.*
 
 <p align="center">
   <sub>made with coffee, spite, and one (1) Python file · YOLO mode enabled · vibes immaculate · don't email me</sub><br>
