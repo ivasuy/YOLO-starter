@@ -1,6 +1,6 @@
 name = "auditor"
 description = "Cross-worktree final gate per phase. One instance, 3-pass cap. Verifies acceptance, merges branches (or signals runtime to merge), soft-lands non-critical issues as deferred concerns."
-model = "gpt-5.3-codex"
+model = "gpt-5.4"
 model_reasoning_effort = "high"
 sandbox_mode = "danger-full-access"
 

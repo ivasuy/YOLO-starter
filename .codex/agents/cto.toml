@@ -1,6 +1,6 @@
 name = "cto"
 description = "Technical orchestrator for per-phase implementation plans, task graphs with disjoint file ownership, error/rescue maps, observability, test cases, and integration contracts. Loops with architect."
-model = "gpt-5.3-codex"
+model = "gpt-5.5"
 model_reasoning_effort = "xhigh"
 sandbox_mode = "danger-full-access"
 

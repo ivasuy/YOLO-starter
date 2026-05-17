@@ -1,6 +1,6 @@
 name = "reviewer"
 description = "Independent reviewer paired 1:1 with one implementer. Dual-lens: spec compliance + code quality. Uses confidence calibration (1-10) to filter findings."
-model = "gpt-5.3-codex"
+model = "gpt-5.4"
 model_reasoning_effort = "medium"
 sandbox_mode = "read-only"
 

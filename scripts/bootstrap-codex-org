@@ -25,8 +25,7 @@ Installs:
   scripts/codex-org
   scripts/bootstrap-codex-org
   .codex/config.toml           (only if missing; never overwritten)
-  .codex/config-profiles.toml  (only if missing)
-  .codex/agents/{ceo,cto,implementer,reviewer}.toml
+  .codex/agents/{ceo,cto,architect,implementer,reviewer,auditor}.toml
   docs/superpowers/{specs,plans}/  (empty dirs)
   agent-runs/                  (scaffold)
   .worktrees/                  (scaffold)
@@ -153,7 +152,6 @@ copy_tree_if_missing workflow
 echo
 echo "── .codex (only added if absent — never overwrites your codex config)"
 copy_if_missing ".codex/config.toml"
-copy_if_missing ".codex/config-profiles.toml"
 copy_tree_if_missing ".codex/agents"
 
 echo

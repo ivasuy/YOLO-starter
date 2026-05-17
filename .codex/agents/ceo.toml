@@ -1,7 +1,7 @@
 name = "ceo"
 description = "Product lead for vague features, intent capture, phased specs, acceptance criteria, and the user-facing changelog. Owns interactive intake and PROJECT.md."
-model = "gpt-5.3-codex"
-model_reasoning_effort = "high"
+model = "gpt-5.5"
+model_reasoning_effort = "xhigh"
 sandbox_mode = "danger-full-access"
 
 developer_instructions = """
