@@ -54,7 +54,7 @@ Several genuinely brilliant projects already exist for "orchestrate N coding age
 
 - [GSD / get-shit-done](https://github.com/gsd-build/get-shit-done) — spec-driven dev for Claude Code, sub-agent fan-out, very polished, ~60K stars and counting. Adults made this.
 - [Claw Orchestrator](https://github.com/Enderfga/claw-orchestrator) — wraps Claude Code, Codex, Gemini, Cursor, OpenCode etc. as one unified runtime. Big API surface. Multi-provider as a feature, not an accident.
-- [Composio Agent Orchestrator](https://github.com/ComposioHQ/agent-orchestrator) — parallel coding agents, autonomous CI fixes, merge conflict handling. Bless.
+- [Composio Agent Orchestrator](https://github.com/ComposioHQ/agent-orchestrator), [Bernstein](https://github.com/sipyourdrink-ltd/bernstein) — parallel coding agents, autonomous CI fixes, merge conflict handling. Bless.
 - [BMAD](https://github.com/bmad-code-org/BMAD-METHOD), [SpecKit](https://github.com/github/spec-kit), [Taskmaster](https://github.com/eyaltoledano/claude-task-master) — full spec/plan/execute frameworks with proper docs and a community.
 
 **YOLO starter is not that.** It is:
@@ -507,7 +507,7 @@ Now go ship something dumb and fun and possibly slightly broken.
 
 ---
 
-*If you actually wanted **multi-provider orchestration**, a UI, a kanban board, a virtual office of fake employees, or "agentic productivity" with a capital A: check out [GSD](https://github.com/gsd-build/get-shit-done), [Claw Orchestrator](https://github.com/Enderfga/claw-orchestrator), [Composio's agent-orchestrator](https://github.com/ComposioHQ/agent-orchestrator), or the [awesome-agent-orchestrators](https://github.com/andyrewlee/awesome-agent-orchestrators) list.*
+*If you actually wanted **multi-provider orchestration**, a UI, a kanban board, a virtual office of fake employees, or "agentic productivity" with a capital A: check out [GSD](https://github.com/gsd-build/get-shit-done), [Claw Orchestrator](https://github.com/Enderfga/claw-orchestrator), [Composio's agent-orchestrator](https://github.com/ComposioHQ/agent-orchestrator), [Bernstein](https://github.com/sipyourdrink-ltd/bernstein), or the [awesome-agent-orchestrators](https://github.com/andyrewlee/awesome-agent-orchestrators) list.*
 
 *If you wanted a **skill framework** — composable, opinionated agent behaviors that snap into your existing CLI — check out [gstack](https://github.com/garrytan/gstack) or [superpowers](https://github.com/obra/superpowers).*
 
